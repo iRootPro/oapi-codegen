@@ -510,7 +510,7 @@ func Test_replaceInitialisms(t *testing.T) {
 		},
 		{
 			name: "plural initialism",
-			args: args{s: "superIDs"},
+			args: args{s: "superIds"},
 			want: "superIDs",
 		},
 		{
