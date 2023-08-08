@@ -102,14 +102,9 @@ func constructImportMapping(importMapping map[string]string) importMap {
 // opts defines
 func Generate(spec *openapi3.T, opts Configuration) (string, error) {
 	// This is global state
-	globalState.options = opts
-	globalState.spec = spec
+	SetGlobalGenerationOptions(opts)
+	SetGlobalStateSpec(spec)
 	globalState.importMapping = constructImportMapping(opts.ImportMapping)
-	globalState.toCamelCaseFunc = ToCamelCase
-
-	if opts.OutputOptions.InitialismOverrides {
-		globalState.toCamelCaseFunc = ToCamelCaseWithInitialism
-	}
 
 	filterOperationsByTag(spec, opts)
 	if !opts.OutputOptions.SkipPrune {
@@ -1099,6 +1094,15 @@ func GetParametersImports(params map[string]*openapi3.ParameterRef) (map[string]
 
 func SetGlobalStateSpec(spec *openapi3.T) {
 	globalState.spec = spec
+}
+
+func SetGlobalGenerationOptions(options Configuration) {
+	globalState.options = options
+	globalState.toCamelCaseFunc = ToCamelCase
+
+	if options.OutputOptions.InitialismOverrides {
+		globalState.toCamelCaseFunc = ToCamelCaseWithInitialism
+	}
 }
 
 func ConfiguredToCamelCase(s string) string {
