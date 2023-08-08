@@ -450,7 +450,6 @@ func TestSchemaNameToTypeName(t *testing.T) {
 	}
 }
 
-
 func TestTypeDefinitionsEquivalent(t *testing.T) {
 	def1 := TypeDefinition{TypeName: "name", Schema: Schema{
 		OAPISchema: &openapi3.Schema{},
@@ -460,7 +459,6 @@ func TestTypeDefinitionsEquivalent(t *testing.T) {
 	}}
 	assert.True(t, TypeDefinitionsEquivalent(def1, def2))
 }
-
 
 func TestRefPathToObjName(t *testing.T) {
 	t.Parallel()
@@ -514,6 +512,37 @@ func Test_replaceInitialisms(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, replaceInitialism(tt.args.s), "replaceInitialism(%v)", tt.args.s)
+		})
+	}
+}
+
+func TestLowercaseFirstCharacters(t *testing.T) {
+	tests := []struct {
+		name     string
+		in       string
+		expected string
+	}{
+		{
+			name:     "id",
+			expected: "id",
+		},
+		{
+			name:     "CamelCase",
+			expected: "camelCase",
+		},
+		{
+			name:     "ID",
+			expected: "id",
+		},
+		{
+			name:     "DBTree",
+			expected: "dbTree",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, LowercaseFirstCharacters(tt.name))
 		})
 	}
 }
