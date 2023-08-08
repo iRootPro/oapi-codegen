@@ -508,6 +508,16 @@ func Test_replaceInitialisms(t *testing.T) {
 			args: args{s: "fooIDBarAPI"},
 			want: "fooIDBarAPI",
 		},
+		{
+			name: "plural initialism",
+			args: args{s: "superIDs"},
+			want: "superIDs",
+		},
+		{
+			name: "k8s initialism",
+			args: args{s: "K8sConfig"},
+			want: "K8SConfig",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -537,6 +547,10 @@ func TestLowercaseFirstCharacters(t *testing.T) {
 		{
 			name:     "DBTree",
 			expected: "dbTree",
+		},
+		{
+			name:     "HTTPRequest",
+			expected: "httpRequest",
 		},
 	}
 
