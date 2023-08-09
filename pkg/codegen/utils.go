@@ -14,6 +14,7 @@
 package codegen
 
 import (
+	"bytes"
 	"fmt"
 	"go/token"
 	"net/url"
@@ -158,46 +159,60 @@ func LowercaseFirstCharacters(str string) string {
 // use `., -, +, :, ;, _, ~, ' ', (, ), {, }, [, ]` as valid delimiters for words.
 // So, "word.word-word+word:word;word_word~word word(word)word{word}[word]"
 // would be converted to WordWordWordWordWordWordWordWordWordWordWordWordWord
-func ToCamelCase(str string) string {
-	s := strings.Trim(str, " ")
-
-	n := ""
+func ToCamelCase(s string) string {
+	res := bytes.NewBuffer(nil)
 	capNext := true
 	for _, v := range s {
 		if unicode.IsUpper(v) {
-			n += string(v)
+			res.WriteRune(v)
+			capNext = false
+			continue
 		}
 		if unicode.IsDigit(v) {
-			n += string(v)
+			res.WriteRune(v)
+			capNext = true
+			continue
 		}
 		if unicode.IsLower(v) {
 			if capNext {
-				n += strings.ToUpper(string(v))
+				res.WriteRune(unicode.ToUpper(v))
 			} else {
-				n += string(v)
+				res.WriteRune(v)
 			}
+			capNext = false
+			continue
 		}
-		_, capNext = separatorSet[v]
+		capNext = true
 	}
-	return n
+	return res.String()
 }
 
-func ToCamelCaseWithInitialism(str string) string {
-	return replaceInitialism(ToCamelCase(str))
+var camelCaseMatchParts = regexp.MustCompile(`[\p{Lu}\d]+([\p{Ll}\d]+|$)`)
+
+// initialismsMap stores initialisms as "lower(initialism) -> initialism" map.
+// List of initialisms was taken from https://staticcheck.io/docs/configuration/options/#initialisms.
+var initialismsMap = makeInitialismsMap([]string{
+	"ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON",
+	"QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID",
+	"URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS", "SIP", "RTP", "AMQP", "DB", "TS",
+})
+
+func makeInitialismsMap(l []string) map[string]string {
+	m := make(map[string]string, len(l))
+	for i := range l {
+		m[strings.ToLower(l[i])] = l[i]
+	}
+	return m
 }
 
-func replaceInitialism(s string) string {
-	// These strings do not apply CamelCase
-	// Do not do CamelCase when these characters match when the preceding character is lowercase
-	// ["Acl", "Api", "Ascii", "Cpu", "Css", "Dns", "Eof", "Guid", "Html", "Http", "Https", "Id", "Ip", "Json", "K8s", "Qps", "Ram", "Rpc", "Sla", "Smtp", "Sql", "Ssh", "Tcp", "Tls", "Ttl", "Udp", "Ui", "Gid", "Uid", "Uuid", "Uri", "Url", "Utf8", "Vm", "Xml", "Xmpp", "Xsrf", "Xss", "Sip", "Rtp", "Amqp", "Db", "Ts"]
-	targetWordRegex := regexp.MustCompile(`(?i)(Acl|Api|Ascii|Cpu|Css|Dns|Eof|Guid|Html|Http|Https|Id|Ip|Json|K8s|Qps|Ram|Rpc|Sla|Smtp|Sql|Ssh|Tcp|Tls|Ttl|Udp|Ui|Gid|Uid|Uuid|Uri|Url|Utf8|Vm|Xml|Xmpp|Xsrf|Xss|Sip|Rtp|Amqp|Db|Ts)`)
-	return targetWordRegex.ReplaceAllStringFunc(s, func(s string) string {
-		// If the preceding character is lowercase, do not do CamelCase
-		if unicode.IsLower(rune(s[0])) {
-			return s
+func ToCamelCaseWithInitialisms(s string) string {
+	parts := camelCaseMatchParts.FindAllString(ToCamelCase(s), -1)
+	for i := range parts {
+		if v, ok := initialismsMap[strings.ToLower(parts[i])]; ok {
+			parts[i] = v
 		}
-		return strings.ToUpper(s)
-	})
+	}
+	return strings.Join(parts, "")
 }
 
 // mediaTypeToCamelCase converts a media type to a PascalCase representation
@@ -208,7 +223,7 @@ func mediaTypeToCamelCase(s string) string {
 	s = strings.Replace(s, "*", "Wildcard_", 1)
 	s = strings.Replace(s, "+", "Plus_", 1)
 
-	return ToCamelCaseWithInitialism(s)
+	return ToCamelCaseWithInitialisms(s)
 }
 
 // SortedSchemaKeys returns the keys of the given SchemaRef dictionary in sorted

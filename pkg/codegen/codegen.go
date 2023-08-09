@@ -1101,7 +1101,7 @@ func SetGlobalGenerationOptions(options Configuration) {
 	globalState.toCamelCaseFunc = ToCamelCase
 
 	if options.OutputOptions.InitialismOverrides {
-		globalState.toCamelCaseFunc = ToCamelCaseWithInitialism
+		globalState.toCamelCaseFunc = ToCamelCaseWithInitialisms
 	}
 }
 
