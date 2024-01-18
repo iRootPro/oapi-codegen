@@ -327,8 +327,9 @@ func (o *OperationDefinition) GetResponseTypeDefinitions() ([]ResponseTypeDefini
 							TypeName: typeName,
 							Schema:   responseSchema,
 						},
-						ResponseName:    responseName,
-						ContentTypeName: contentTypeName,
+						ResponseName:              responseName,
+						ContentTypeName:           contentTypeName,
+						AdditionalTypeDefinitions: responseSchema.GetAdditionalTypeDefs(),
 					}
 					if IsGoTypeReference(responseRef.Ref) {
 						refType, err := RefPathToGoType(responseRef.Ref)
@@ -618,7 +619,6 @@ func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
 				// They are the default securityPermissions which are injected into each
 				// path, except for the case where a path explicitly overrides them.
 				opDef.SecurityDefinitions = DescribeSecurityDefinition(swagger.Security)
-
 			}
 
 			if op.RequestBody != nil {
@@ -635,7 +635,7 @@ func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
 }
 
 func generateDefaultOperationID(opName string, requestPath string) (string, error) {
-	var operationId = strings.ToLower(opName)
+	operationId := strings.ToLower(opName)
 
 	if opName == "" {
 		return "", fmt.Errorf("operation name cannot be an empty string")
@@ -982,7 +982,6 @@ func GenerateGorillaServer(t *template.Template, operations []OperationDefinitio
 }
 
 func GenerateStrictServer(t *template.Template, operations []OperationDefinition, opts Configuration) (string, error) {
-
 	var templates []string
 
 	if opts.Generate.ChiServer || opts.Generate.GorillaServer {
