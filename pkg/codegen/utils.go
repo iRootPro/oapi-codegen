@@ -1000,7 +1000,7 @@ func isAdditionalPropertiesExplicitFalse(s *openapi3.Schema) bool {
 	return *s.AdditionalProperties.Has == false //nolint:gosimple
 }
 
-func generateReposneName(responseName, operationID string) string {
+func generateResponseName(responseName, operationID string) string {
 	if !unicode.IsDigit(rune(responseName[0])) {
 		return responseName
 	}
