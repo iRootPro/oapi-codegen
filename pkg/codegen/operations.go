@@ -294,7 +294,7 @@ func (o *OperationDefinition) GetResponseTypeDefinitions() ([]ResponseTypeDefini
 				if contentType.Schema != nil {
 					responseSchema, err := GenerateGoSchema(
 						contentType.Schema,
-						[]string{generateReposneName(responseName, o.OperationId)},
+						[]string{generateResponseName(responseName, o.OperationId)},
 					)
 					if err != nil {
 						return nil, fmt.Errorf("Unable to determine Go type for %s.%s: %w", o.OperationId, contentTypeName, err)
